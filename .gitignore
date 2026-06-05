@@ -1,0 +1,40 @@
+# Root .gitignore for khatarnak-portfolio monorepo
+
+# ── Node / Next.js ──────────────────────────────────────────────────────
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+frontend/.env*.local
+frontend/public/sw.js
+frontend/public/workbox-*.js
+frontend/public/worker-*.js
+frontend/public/fallback-*.js
+frontend/.DS_Store
+
+# ── Java / Maven ─────────────────────────────────────────────────────────
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+*.ear
+*.log
+.DS_Store
+
+# ── IDX / IDE ─────────────────────────────────────────────────────────────
+.idx/
+.vscode/settings.json
+*.iml
+.idea/
+*.swp
+*.swo
+
+# ── Environment & secrets ─────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── OS ────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db

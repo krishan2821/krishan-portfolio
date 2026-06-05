@@ -1,0 +1,327 @@
+/* Global CSS — Tailwind base + custom CSS variables for glassmorphism, fonts, and dark theme */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Design Tokens & Theme Variables ────────────────────────────────── */
+:root {
+  /* Glass surface tokens */
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-bg-hover: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-blur: 10px;
+
+  /* Background shades */
+  --bg-base: #030303;
+  --bg-surface: #0a0a0a;
+  --bg-elevated: #121212;
+
+  /* Text colors */
+  --text-primary: #f5f5f7;
+  --text-secondary: #8e8e93;
+  --text-muted: #424245;
+
+  /* Default Theme: Monochrome (Purple/Indigo Accent) */
+  --accent: #a78bfa;
+  --accent-glow: rgba(167, 139, 250, 0.22);
+  --gradient-start: #a78bfa;
+  --gradient-end: #818cf8;
+  --terminal-green: #4ade80;
+}
+
+/* Cyberpunk Theme */
+html[data-theme='cyberpunk'] {
+  --accent: #f43f5e;
+  --accent-glow: rgba(244, 63, 94, 0.25);
+  --gradient-start: #f43f5e;
+  --gradient-end: #06b6d4;
+  --terminal-green: #06b6d4;
+}
+
+/* Emerald/Tech Theme */
+html[data-theme='emerald'] {
+  --accent: #10b981;
+  --accent-glow: rgba(16, 185, 129, 0.25);
+  --gradient-start: #10b981;
+  --gradient-end: #fbbf24;
+  --terminal-green: #34d399;
+}
+
+/* Sunset Theme */
+html[data-theme='sunset'] {
+  --accent: #f97316;
+  --accent-glow: rgba(249, 115, 22, 0.25);
+  --gradient-start: #f97316;
+  --gradient-end: #ec4899;
+  --terminal-green: #f43f5e;
+}
+
+/* ─── Base Reset & Layout ────────────────────────────────────────────── */
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-inter), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-space-grotesk), var(--font-inter), system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  /* Custom premium thin scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--bg-base);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--text-muted);
+    border-radius: 99px;
+    border: 1px solid var(--bg-base);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+  }
+
+  /* Selection styling */
+  ::selection {
+    background: var(--accent);
+    color: #030303;
+  }
+
+  /* Focus outline ring */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+}
+
+/* ─── Interactive Background Elements ────────────────────────────────── */
+.mesh-grid {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 50px 50px;
+  mask-image: radial-gradient(circle at 50% 50%, black 30%, transparent 90%);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, black 30%, transparent 90%);
+}
+
+.blob-glow {
+  filter: blur(140px);
+  opacity: 0.12;
+  mix-blend-mode: screen;
+  transition: all 1s ease-in-out;
+  will-change: transform;
+}
+
+/* ─── Glassmorphism & UI Components ──────────────────────────────────── */
+@layer components {
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    /* GPU layer promotion to optimize backdrop-filtering in Chromium */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000;
+  }
+
+  .glass-hover {
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .glass-hover:hover {
+    background: var(--glass-bg-hover);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 1px 1px rgba(255, 255, 255, 0.1) inset;
+  }
+
+  .glass-card {
+    @apply glass glass-hover rounded-2xl p-6 relative overflow-hidden;
+    box-shadow: 0 4px 24px -10px rgba(0, 0, 0, 0.3);
+  }
+
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent 60%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Theme-driven Gradient text utility */
+  .gradient-text {
+    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 40px var(--accent-glow);
+  }
+
+  /* Glow button driven by active theme accent */
+  .btn-glow {
+    @apply relative overflow-hidden rounded-xl px-6 py-3 font-semibold text-white transition-all duration-300 flex items-center justify-center;
+    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+
+  .btn-glow:hover {
+    box-shadow: 0 0 35px var(--accent-glow), 0 10px 20px -10px rgba(0,0,0,0.5);
+    transform: translateY(-2px);
+  }
+  
+  .btn-glow:active {
+    transform: translateY(0);
+  }
+
+  .btn-ghost {
+    @apply glass glass-hover rounded-xl px-6 py-3 font-semibold transition-all duration-300 flex items-center justify-center;
+    color: var(--text-primary);
+  }
+
+  .section-container {
+    @apply max-w-screen-xl mx-auto px-6 md:px-12 py-20 lg:py-32;
+  }
+
+  .tag-pill {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold tracking-wide uppercase transition-colors duration-200;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-secondary);
+  }
+
+  .tag-pill:hover {
+    border-color: var(--accent);
+    color: var(--text-primary);
+  }
+}
+
+/* ─── Animated Customizations ────────────────────────────────────────── */
+@layer utilities {
+  /* Scroll indicators & blinkers */
+  .animate-cursor-blink {
+    animation: cursor-blink 1s step-end infinite;
+  }
+
+  /* Noise Overlay - highly optimized texture to prevent GPU layout reflow bottlenecks in Chrome/Brave */
+  .noise-overlay::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 128 128' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.99' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.015;
+  }
+}
+
+@keyframes cursor-blink {
+  50% { opacity: 0; }
+}
+
+/* Scroll Entry animations (3D depth-focus reveal) */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(50px) scale(0.96) rotateX(4deg);
+  filter: blur(8px);
+  perspective: 1000px;
+  transition: 
+    opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), 
+    transform 1.2s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity, filter;
+}
+
+.reveal-on-scroll.revealed {
+  opacity: 1;
+  transform: translateY(0) scale(1) rotateX(0deg);
+  filter: blur(0px);
+}
+
+/* CRT monitor lines with phosphor flicker for terminal frame */
+@keyframes crt-flicker {
+  0% { opacity: 0.985; }
+  50% { opacity: 1; }
+  100% { opacity: 0.985; }
+}
+
+@keyframes scanline-sweep {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.crt-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.crt-effect::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: 
+    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+    linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  z-index: 10;
+  background-size: 100% 4px, 6px 100%;
+  pointer-events: none;
+  animation: crt-flicker 0.15s infinite;
+}
+
+.crt-effect::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 120px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.02) 50%, rgba(255, 255, 255, 0));
+  z-index: 11;
+  pointer-events: none;
+  animation: scanline-sweep 7s linear infinite;
+}
+
+/* Phosphor Glow Styles for Terminal Text */
+.terminal-line {
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.12);
+  transition: text-shadow 0.3s ease;
+}
+
+.terminal-line.text-\[var\(--terminal-green\)\] {
+  text-shadow: 0 0 5px rgba(74, 222, 128, 0.3), 0 0 10px rgba(74, 222, 128, 0.1);
+}
+
+.terminal-line.text-accent {
+  text-shadow: 0 0 5px var(--accent-glow), 0 0 10px rgba(167, 139, 250, 0.1);
+}
+
+.terminal-line.text-red-400 {
+  text-shadow: 0 0 5px rgba(248, 113, 113, 0.35), 0 0 10px rgba(248, 113, 113, 0.15);
+}
+
+.terminal-line.text-sky-400 {
+  text-shadow: 0 0 5px rgba(56, 189, 248, 0.3);
+}
