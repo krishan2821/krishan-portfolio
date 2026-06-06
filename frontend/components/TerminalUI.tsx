@@ -15,7 +15,7 @@ type CommandHandler = () => string[]
 const STATIC_COMMANDS: Record<string, CommandHandler> = {
   help: () => [
     '┌─────────────────────────────────────────┐',
-    '│             SYSTEM TERMINAL v2.2.0      │',
+    '│             KRISHAN TERMINAL v2.2.0      │',
     '└─────────────────────────────────────────┘',
     '',
     'Available commands:',
@@ -108,6 +108,9 @@ function MatrixRain({ isActive, isCompromised }: { isActive: boolean; isCompromi
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
+    // Skip if user prefers reduced motion
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
     let width = (canvas.width = canvas.parentElement?.clientWidth ?? 350)
     let height = (canvas.height = canvas.parentElement?.clientHeight ?? 300)
 
@@ -116,12 +119,20 @@ function MatrixRain({ isActive, isCompromised }: { isActive: boolean; isCompromi
 
     let animationId: number
     let lastTime = 0
-    // Dynamic Frame Rate: only 10 FPS for ambient flow to save CPU, 30 for active, 50 for breached
-    const targetFps = isCompromised ? 50 : (isActive ? 30 : 10)
+    let isVisible = true  // IntersectionObserver visibility flag
+
+    // Dynamic Frame Rate:
+    // - 5 FPS for ambient (REDUCED from 10 — saves ~50% CPU in idle state)
+    // - 30 FPS for active matrix
+    // - 50 FPS for compromised (breach animation)
+    const targetFps = isCompromised ? 50 : (isActive ? 30 : 5)
     const interval = 1000 / targetFps
 
     const matrix = (time: number) => {
       animationId = requestAnimationFrame(matrix)
+
+      // Pause entirely when canvas is off-screen (terminal scrolled away)
+      if (!isVisible || document.hidden) return
 
       const delta = time - lastTime
       if (delta < interval) return
@@ -152,6 +163,14 @@ function MatrixRain({ isActive, isCompromised }: { isActive: boolean; isCompromi
 
     animationId = requestAnimationFrame(matrix)
 
+    // IntersectionObserver: fully pause canvas rendering when terminal is off-screen.
+    // Chrome cannot optimize rAF loops it doesn't know are invisible.
+    const observer = new IntersectionObserver(
+      (entries) => { isVisible = entries[0]?.isIntersecting ?? true },
+      { threshold: 0.01 }
+    )
+    observer.observe(canvas)
+
     const handleResize = () => {
       if (!canvas) return
       width = canvas.width = canvas.parentElement?.clientWidth ?? 350
@@ -161,6 +180,7 @@ function MatrixRain({ isActive, isCompromised }: { isActive: boolean; isCompromi
 
     return () => {
       cancelAnimationFrame(animationId)
+      observer.disconnect()
       window.removeEventListener('resize', handleResize)
     }
   }, [isActive, isCompromised])
@@ -325,7 +345,7 @@ export function TerminalUI({
       " | . \\| |  | \\__ \\ | | | (_| | | | |",
       ' |_|\\_\\_|  |_|___/_| |_|\\__,_|_| |_|',
       ' ===================================',
-      '    PORTFOLIO SECURE SHELL v2.2.0   ',
+      '    KRISHAN PORTFOLIO SECURE SHELL v2.2.0   ',
       ' ===================================',
       ''
     ]
@@ -336,7 +356,7 @@ export function TerminalUI({
       '🔐 CRYPTO TUNNEL SECURED: AES_256_GCM | LATENCY: 12MS',
       '📂 ACCESSING REPOSITORY: workspace / portfolio',
       '🟢 FIREWALL PROTOCOLS DEACTIVATED SUCCESFULLY.',
-      'System Terminal v2.2.0 initialized 🖥️',
+      'Krishan Terminal v2.2.0 initialized 🖥️',
       "Type 'help' to audit system capabilities.",
       ''
     ]
@@ -563,7 +583,7 @@ export function TerminalUI({
           `  ROLE      : Java Developer & AI Specialist`,
           `  SYSTEM    : idx-workspace-mac-v2.0`,
           `  THEME     : ${currentTheme.toUpperCase()}`,
-          `  SHELL     : zsh / terminal-shell`,
+          `  SHELL     : zsh / krishan-shell`,
           `  DATABASE  : 🟢 MongoDB Atlas (Active)`,
           `  SERVER    : 🟢 Spring Boot API Node (Port 8080)`,
           ''
@@ -660,10 +680,10 @@ export function TerminalUI({
   return (
     <aside
       aria-label="Interactive terminal shell"
-      className={`flex h-full w-full flex-col overflow-hidden rounded-2xl border font-mono text-xs shadow-2xl relative crt-effect backdrop-blur-xl transition-all duration-500 ${
+      className={`flex h-full w-full flex-col overflow-hidden rounded-2xl border font-mono text-xs shadow-2xl relative crt-effect transition-all duration-500 ${
         isCompromised
-          ? 'border-red-500/35 shadow-[0_0_30px_rgba(239,68,68,0.25)] bg-black/90'
-          : 'border-white/10 bg-black/80'
+          ? 'border-red-500/35 shadow-[0_0_30px_rgba(239,68,68,0.25)] bg-neutral-950/98'
+          : 'border-white/10 bg-neutral-950/98'
       }`}
     >
       {/* Matrix Overlay canvas (Always active background) */}
@@ -709,7 +729,7 @@ export function TerminalUI({
           isCompromised ? 'text-red-400' : 'text-neutral-500'
         }`}>
           <IconTerminal size={12} className={isCompromised ? 'text-red-500 animate-pulse' : 'text-accent'} />
-          {isCompromised ? 'MAINFRAME // BREACHED' : 'TERMINAL // ZSH'}
+          {isCompromised ? 'MAINFRAME // BREACHED' : 'KRISHAN // ZSH'}
         </span>
 
         {/* Audio Toggle Button */}

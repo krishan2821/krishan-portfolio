@@ -1,7 +1,8 @@
 // Navbar — responsive navigation layout, fixed sidebar on desktop (collapsible), bottom bar on mobile
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, memo } from 'react'
+import Image from 'next/image'
 import {
   IconHome2,
   IconTerminal2,
@@ -45,7 +46,7 @@ interface NavbarProps {
   onToggleTerminal?: () => void
 }
 
-export function Navbar({ activeSection = 'hero', isTerminalOpen = false, onToggleTerminal }: NavbarProps) {
+export const Navbar = memo(function Navbar({ activeSection = 'hero', isTerminalOpen = false, onToggleTerminal }: NavbarProps) {
   const isActive = useCallback(
     (href: string) => href === `#${activeSection}`,
     [activeSection]
@@ -63,18 +64,28 @@ export function Navbar({ activeSection = 'hero', isTerminalOpen = false, onToggl
       <nav
         aria-label="Desktop navigation sidebar"
         className="
-          fixed left-0 top-0 z-40 hidden h-full w-[68px] flex-col items-center border-r border-white/5
-          bg-[#050505]/70 py-6 backdrop-blur-xl transition-all duration-300 hover:w-52 group/nav lg:flex
-          shadow-[20px_0_40px_rgba(0,0,0,0.8)]
+          fixed left-0 top-0 z-40 hidden h-full flex-col items-center border-r border-white/5
+          bg-[#050505] py-6 group/nav lg:flex
+          shadow-[20px_0_40px_rgba(0,0,0,0.8)] overflow-hidden
         "
+        style={{
+          width: '68px',
+          transition: 'width 0.3s cubic-bezier(0.16,1,0.3,1)',
+          willChange: 'width',
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.width = '208px')}
+        onMouseLeave={(e) => (e.currentTarget.style.width = '68px')}
       >
         {/* Profile Avatar with Accent Glow */}
         <div className="relative mb-10 flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 transition-all duration-300 group-hover/nav:scale-110 border border-white/10 group-hover/nav:border-accent/40 shadow-lg group-hover/nav:shadow-[0_0_15px_var(--accent-glow)] overflow-hidden">
-          <span className="absolute inset-0 bg-gradient-to-tr from-var(--gradient-start) to-var(--gradient-end) opacity-20 blur-sm z-0" />
-          <img 
-            src="/images/profile.jpg" 
-            alt="Krishan Kumar" 
-            className="h-full w-full object-cover relative z-10 transition-transform duration-500 group-hover/nav:scale-115"
+          <span className="absolute inset-0 bg-gradient-to-tr from-[var(--gradient-start)] to-[var(--gradient-end)] opacity-20 blur-sm z-0" />
+          <Image
+            src="/images/profile.jpg"
+            alt="Krishan Kumar"
+            fill
+            sizes="40px"
+            className="object-cover z-10 transition-transform duration-500 group-hover/nav:scale-[1.15]"
+            priority
           />
         </div>
 
@@ -100,8 +111,8 @@ export function Navbar({ activeSection = 'hero', isTerminalOpen = false, onToggl
                   }}
                   aria-current={active ? 'page' : undefined}
                   className={`
-                    flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-semibold
-                    transition-all duration-300 w-full overflow-hidden relative
+                    flex items-center gap-0 group-hover/nav:gap-3 rounded-xl px-3 group-hover/nav:px-3.5 py-3 text-sm font-semibold
+                    transition-colors duration-200 w-full overflow-hidden relative
                     ${
                       active
                         ? 'bg-white/10 text-white shadow-[0_0_15px_-3px_rgba(255,255,255,0.1)]'
@@ -122,7 +133,7 @@ export function Navbar({ activeSection = 'hero', isTerminalOpen = false, onToggl
                   {active && (
                     <div 
                       aria-hidden="true" 
-                      className="absolute left-0 top-1/4 h-1/2 w-0.5 rounded-r bg-gradient-to-b from-var(--gradient-start) to-var(--gradient-end) shadow-[0_0_8px_var(--accent)]" 
+                      className="absolute left-0 top-1/4 h-1/2 w-0.5 rounded-r bg-gradient-to-b from-[var(--gradient-start)] to-[var(--gradient-end)] shadow-[0_0_8px_var(--accent)]" 
                     />
                   )}
                 </a>
@@ -145,7 +156,7 @@ export function Navbar({ activeSection = 'hero', isTerminalOpen = false, onToggl
         aria-label="Mobile navigation bar"
         className="
           fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-white/5 
-          bg-[#050505]/80 px-3 py-2.5 backdrop-blur-xl lg:hidden shadow-[0_-10px_35px_rgba(0,0,0,0.8)]
+          bg-[#050505]/95 px-3 py-2.5 lg:hidden shadow-[0_-10px_35px_rgba(0,0,0,0.8)]
         "
       >
         {NAV_ITEMS.map((item) => {
@@ -185,6 +196,6 @@ export function Navbar({ activeSection = 'hero', isTerminalOpen = false, onToggl
       </nav>
     </>
   )
-}
+})
 
 export default Navbar

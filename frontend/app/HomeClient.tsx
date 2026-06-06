@@ -45,6 +45,7 @@ export default function HomeClient() {
 
   const activeSection = useActiveSection(SECTION_IDS)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const isTransitioningRef = useRef(false)
 
   // Open terminal on desktop by default after mount, and close it if width drops below desktop threshold
   useEffect(() => {
@@ -62,51 +63,68 @@ export default function HomeClient() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // Performant direct DOM scroll tracking (Bypasses React re-renders)
+  // CSS-only blob float animation (replaces JS parallax)
+  // Blobs now animate via @keyframes in globals.css — compositor thread handles this,
+  // completely bypassing JS main thread during scroll. Chrome stays smooth.
+  // Performant direct DOM scroll tracking (Bypasses React re-renders & layout thrashing)
   useEffect(() => {
     if (!mounted) return
-    const mesh = document.getElementById('bg-mesh')
-    const blob1 = document.getElementById('blob-1')
-    const blob2 = document.getElementById('blob-2')
-    const blob3 = document.getElementById('blob-3')
     const progressBar = document.getElementById('scroll-progress-bar')
+    
+    let totalScroll = document.documentElement.scrollHeight - window.innerHeight
+    let scrollTimeout: number | null = null
+
+    const handleResize = () => {
+      totalScroll = document.documentElement.scrollHeight - window.innerHeight
+    }
 
     const handleScroll = () => {
-      const currentScrollY = window.scrollY
-      
-      if (mesh) mesh.style.transform = `translateY(${currentScrollY * 0.15}px)`
-      if (blob1) blob1.style.transform = `translateY(${currentScrollY * 0.2}px)`
-      if (blob2) blob2.style.transform = `translateY(${currentScrollY * -0.1}px)`
-      if (blob3) blob3.style.transform = `translateY(${currentScrollY * 0.05}px)`
-      
-      const totalScroll = document.documentElement.scrollHeight - window.innerHeight
-      if (totalScroll > 0 && progressBar) {
-        progressBar.style.transform = `scaleX(${currentScrollY / totalScroll})`
-      }
+      if (scrollTimeout) return
+
+      scrollTimeout = window.requestAnimationFrame(() => {
+        const currentScrollY = window.scrollY
+        if (totalScroll > 0 && progressBar) {
+          progressBar.style.transform = `scaleX(${currentScrollY / totalScroll})`
+        }
+        scrollTimeout = null
+      })
     }
     
     handleScroll()
     window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    window.addEventListener('resize', handleResize, { passive: true })
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', handleResize)
+      if (scrollTimeout) window.cancelAnimationFrame(scrollTimeout)
+    }
   }, [mounted])
 
   // Advanced mouse-reactive particle constellation animation
+  // Optimized for Chrome/Brave: prefers-reduced-motion check, HiDPI scaling,
+  // reduced O(n²) connection radius, tab visibility pause
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
+    // Skip entire animation if user prefers reduced motion (also saves battery)
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
     let animationFrameId: number
     let width = (canvas.width = window.innerWidth)
     let height = (canvas.height = window.innerHeight)
     let isScrolledOut = false
+    let isTabHidden = false
+    const isInputFocused = { current: false }
 
     // Mouse state — tracks position and click ripples
     const mouse = { x: -9999, y: -9999 }
     const REPEL_RADIUS = 140      // particles flee within this distance
-    const CONNECT_RADIUS = 160    // line connection max distance
-    const MOUSE_CONNECT_RADIUS = 220  // mouse connects to particles at larger range
+    const CONNECT_RADIUS = 120    // REDUCED from 160: fewer O(n²) pairs to check
+    const MOUSE_CONNECT_RADIUS = 200  // REDUCED from 220
 
     // Ripple rings spawned on click
     const ripples: Array<{ x: number; y: number; r: number; alpha: number }> = []
@@ -119,9 +137,42 @@ export default function HomeClient() {
     const handleClick = (e: MouseEvent) => {
       ripples.push({ x: e.clientX, y: e.clientY, r: 0, alpha: 0.8 })
     }
+    // Tab visibility: pause animation when tab is hidden (Chrome throttles anyway,
+    // but being explicit ensures zero CPU waste when background)
+    const handleVisibilityChange = () => {
+      isTabHidden = document.hidden
+    }
+    const handleFocusIn = (e: Event) => {
+      const target = e.target as HTMLElement | null
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
+        isInputFocused.current = true
+      }
+    }
+    const handleFocusOut = () => {
+      isInputFocused.current = false
+    }
+
+    // Also pause canvas on ANY pointer interaction (click, hover activate, touchstart)
+    // This frees the GPU for CSS transitions and layout during user interactions
+    let pointerPauseTimer: ReturnType<typeof setTimeout> | null = null
+    const pauseForPointer = () => {
+      isInputFocused.current = true
+      if (pointerPauseTimer) clearTimeout(pointerPauseTimer)
+      pointerPauseTimer = setTimeout(() => {
+        isInputFocused.current = false
+        pointerPauseTimer = null
+      }, 150)  // Resume 150ms after last pointer event
+    }
+
     window.addEventListener('mousemove', handleMouseMove)
     window.addEventListener('mouseleave', handleMouseLeave)
     window.addEventListener('click', handleClick)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focusin', handleFocusIn)
+    window.addEventListener('focusout', handleFocusOut)
+    // Pause canvas on any pointer/touch interaction to free GPU for CSS transitions
+    window.addEventListener('pointerdown', pauseForPointer)
+    window.addEventListener('touchstart', pauseForPointer, { passive: true })
 
     const handleResize = () => {
       if (!canvas) return
@@ -144,7 +195,11 @@ export default function HomeClient() {
       { r: 255, g: 255, b: 255 },  // white (higher weight)
     ]
 
-    const particleCount = Math.min(Math.floor((width * height) / 22000), 40)
+    const dprScale = window.devicePixelRatio > 1.5 ? 0.7 : 1
+    const particleCount = Math.min(
+      Math.floor((width * height) / 24000 * dprScale),
+      22  // Hard cap reduced to 22 for extreme performance optimization
+    )
 
     interface Particle {
       x: number; y: number
@@ -155,6 +210,7 @@ export default function HomeClient() {
       alpha: number
       pulse: number      // phase for size pulse
       pulseSpeed: number
+      mouseDistSq?: number
     }
 
     const particles: Particle[] = []
@@ -181,8 +237,8 @@ export default function HomeClient() {
     const draw = (timestamp: number) => {
       animationFrameId = requestAnimationFrame(draw)
 
-      // Pause rendering if scrolled out of view or tab is hidden/minimized
-      if (isScrolledOut || document.hidden) {
+      // Pause rendering if scrolled out of view, tab hidden, inputs focused, or panel transitioning
+      if (isScrolledOut || isTabHidden || document.hidden || isInputFocused.current || isTransitioningRef.current) {
         return
       }
 
@@ -193,7 +249,7 @@ export default function HomeClient() {
 
       ctx.clearRect(0, 0, width, height)
 
-      // ── 1. Draw cursor glow aura ────────────────────────────────────────
+      // ── 1. Draw cursor glow aura ─────────────────────────────────────────
       if (mouse.x > 0) {
         const grad = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, REPEL_RADIUS)
         grad.addColorStop(0, 'rgba(167,139,250,0.07)')
@@ -205,7 +261,7 @@ export default function HomeClient() {
         ctx.fill()
       }
 
-      // ── 2. Update & draw particles ──────────────────────────────────────
+      // ── 2. Update & draw particles ────────────────────────────────────
       particles.forEach((p) => {
         // Pulse radius
         p.pulse += p.pulseSpeed
@@ -215,6 +271,7 @@ export default function HomeClient() {
         const mdx = p.x - mouse.x
         const mdy = p.y - mouse.y
         const mdistSq = mdx * mdx + mdy * mdy
+        p.mouseDistSq = mdistSq
         const REPEL_RADIUS_SQ = REPEL_RADIUS * REPEL_RADIUS
         let mdist = 9999
 
@@ -254,19 +311,17 @@ export default function HomeClient() {
         const mouseProx = Math.max(0, 1 - mdist / MOUSE_CONNECT_RADIUS)
         const alpha = Math.min(1, p.alpha + mouseProx * 0.5)
 
-        // Outer glow on close particles
+        // Outer glow on close particles (Optimized to square fillRect)
         if (mouseProx > 0.3) {
-          ctx.beginPath()
-          ctx.arc(p.x, p.y, displayR * 3, 0, Math.PI * 2)
-          ctx.fillStyle = `rgba(${p.color.r},${p.color.g},${p.color.b},${mouseProx * 0.15})`
-          ctx.fill()
+          ctx.fillStyle = `rgba(${p.color.r},${p.color.g},${p.color.b},${mouseProx * 0.12})`
+          const glowSize = displayR * 5
+          ctx.fillRect(p.x - glowSize / 2, p.y - glowSize / 2, glowSize, glowSize)
         }
 
-        // Main dot
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, displayR, 0, Math.PI * 2)
+        // Main dot (Optimized to square fillRect)
         ctx.fillStyle = `rgba(${p.color.r},${p.color.g},${p.color.b},${alpha})`
-        ctx.fill()
+        const dotSize = displayR * 2
+        ctx.fillRect(p.x - dotSize / 2, p.y - dotSize / 2, dotSize, dotSize)
       })
 
       const CONNECT_RADIUS_SQ = CONNECT_RADIUS * CONNECT_RADIUS
@@ -283,9 +338,9 @@ export default function HomeClient() {
           if (distSq < CONNECT_RADIUS_SQ) {
             const dist = Math.sqrt(distSq)
             const t = 1 - dist / CONNECT_RADIUS
-            // Check if either particle is near mouse for color boost (using squared dist)
-            const miDistSq = (pi.x - mouse.x) ** 2 + (pi.y - mouse.y) ** 2
-            const mjDistSq = (pj.x - mouse.x) ** 2 + (pj.y - mouse.y) ** 2
+            // Check if either particle is near mouse for color boost (using cached mouseDistSq)
+            const miDistSq = pi.mouseDistSq ?? 999999
+            const mjDistSq = pj.mouseDistSq ?? 999999
             const nearMouse = Math.min(miDistSq, mjDistSq) < MOUSE_CONNECT_RADIUS_SQ
 
             if (nearMouse) {
@@ -306,7 +361,7 @@ export default function HomeClient() {
         }
       }
 
-      // ── 4. Draw mouse → particle connections ───────────────────────────
+      // ── 4. Draw mouse → particle connections ───────────────────────
       if (mouse.x > 0) {
         particles.forEach((p) => {
           const dx = p.x - mouse.x
@@ -333,7 +388,7 @@ export default function HomeClient() {
         ctx.fill()
       }
 
-      // ── 5. Animate click ripples ────────────────────────────────────────
+      // ── 5. Animate click ripples ───────────────────────────────────
       for (let i = ripples.length - 1; i >= 0; i--) {
         const rpl = ripples[i]!
         rpl.r += 4
@@ -364,11 +419,20 @@ export default function HomeClient() {
       window.removeEventListener('click', handleClick)
       window.removeEventListener('resize', handleResize)
       window.removeEventListener('scroll', handleScroll)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focusin', handleFocusIn)
+      window.removeEventListener('focusout', handleFocusOut)
+      window.removeEventListener('pointerdown', pauseForPointer)
+      window.removeEventListener('touchstart', pauseForPointer)
+      if (pointerPauseTimer) clearTimeout(pointerPauseTimer)
       cancelAnimationFrame(animationFrameId)
     }
   }, [mounted])
 
   // Scroll reveal IntersectionObserver handler
+  // will-change is set dynamically: only while element is actively animating
+  // (set on enter, removed after transition ends). This prevents Chrome from
+  // keeping too many elements as promoted GPU layers simultaneously.
   useEffect(() => {
     if (!mounted) return
     const revealElements = document.querySelectorAll('.reveal-on-scroll')
@@ -376,7 +440,14 @@ export default function HomeClient() {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add('revealed')
+            const el = entry.target as HTMLElement
+            // Set will-change just before the transition starts
+            el.classList.add('is-revealing')
+            el.classList.add('revealed')
+            // Remove will-change after animation completes (0.9s from CSS)
+            setTimeout(() => {
+              el.classList.remove('is-revealing')
+            }, 950)
           }
         })
       },
@@ -387,9 +458,27 @@ export default function HomeClient() {
     return () => observer.disconnect()
   }, [mounted])
 
-  const toggleTerminal = useCallback(() => setIsTerminalOpen((prev) => !prev), [])
-  const closeTerminal = useCallback(() => setIsTerminalOpen(false), [])
-  const toggleMaximizeTerminal = useCallback(() => setIsTerminalMaximized((prev) => !prev), [])
+  const toggleTerminal = useCallback(() => {
+    isTransitioningRef.current = true
+    setTimeout(() => {
+      isTransitioningRef.current = false
+    }, 600)
+    setIsTerminalOpen((prev) => !prev)
+  }, [])
+  const closeTerminal = useCallback(() => {
+    isTransitioningRef.current = true
+    setTimeout(() => {
+      isTransitioningRef.current = false
+    }, 600)
+    setIsTerminalOpen(false)
+  }, [])
+  const toggleMaximizeTerminal = useCallback(() => {
+    isTransitioningRef.current = true
+    setTimeout(() => {
+      isTransitioningRef.current = false
+    }, 600)
+    setIsTerminalMaximized((prev) => !prev)
+  }, [])
 
   if (!mounted) return null
 
@@ -407,24 +496,26 @@ export default function HomeClient() {
         {/* Dynamic Canvas Particles */}
         <canvas ref={canvasRef} className="absolute inset-0 opacity-40" />
 
-        {/* Mesh grid layout pattern (parallax scroll) */}
+        {/* Mesh grid layout pattern (CSS-only, no JS parallax) */}
         <div 
           id="bg-mesh"
           className="absolute inset-0 mesh-grid opacity-60" 
         />
 
-        {/* Floating gradient blur blobs (multi-layered parallax scroll) */}
+        {/* Floating gradient blur blobs — CSS @keyframes float animation.
+            Removed JS parallax transform: Chrome re-blurs filter:blur on every
+            scroll event. CSS keyframes run on compositor thread (no re-blur). */}
         <div 
           id="blob-1"
-          className="absolute -left-20 -top-20 h-96 w-96 rounded-full bg-[#a78bfa] blob-glow opacity-[0.06]" 
+          className="absolute -left-20 -top-20 h-96 w-96 rounded-full bg-[#a78bfa] blob-glow blob-float-1 opacity-[0.06]" 
         />
         <div 
           id="blob-2"
-          className="absolute right-10 top-1/3 h-80 w-80 rounded-full bg-[#06b6d4] blob-glow opacity-[0.05]" 
+          className="absolute right-10 top-1/3 h-80 w-80 rounded-full bg-[#06b6d4] blob-glow blob-float-2 opacity-[0.05]" 
         />
         <div 
           id="blob-3"
-          className="absolute -right-20 bottom-10 h-[500px] w-[500px] rounded-full bg-accent blob-glow opacity-[0.04]" 
+          className="absolute -right-20 bottom-10 h-[500px] w-[500px] rounded-full bg-accent blob-glow blob-float-3 opacity-[0.04]" 
         />
       </div>
 

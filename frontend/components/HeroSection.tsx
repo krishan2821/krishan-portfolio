@@ -1,7 +1,7 @@
 // HeroSection — full-viewport landing page with typewriter animation, stats dashboard, and mock code editor
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, memo } from 'react'
 import {
   IconBrandGithub,
   IconBrandLinkedin,
@@ -61,7 +61,7 @@ interface HeroSectionProps {
   onOpenTerminal?: () => void
 }
 
-export function HeroSection({ onOpenTerminal }: HeroSectionProps) {
+export const HeroSection = memo(function HeroSection({ onOpenTerminal }: HeroSectionProps) {
   const [displayText, setDisplayText] = useState('')
   const [phraseIndex, setPhraseIndex] = useState(0)
   const [charIndex, setCharIndex] = useState(0)
@@ -138,7 +138,7 @@ export function HeroSection({ onOpenTerminal }: HeroSectionProps) {
           </div>
 
           {/* Core Metrics Dashboard */}
-          <div className="grid grid-cols-3 gap-4 py-4 max-w-lg border-y border-white/5 font-mono text-center lg:text-left shadow-[0_10px_20px_-10px_rgba(0,0,0,0.5)] bg-white/[0.01] p-4 rounded-xl border border-white/5">
+          <div className="grid grid-cols-3 gap-4 py-4 max-w-lg font-mono text-center lg:text-left shadow-[0_10px_20px_-10px_rgba(0,0,0,0.5)] bg-white/[0.01] p-4 rounded-xl border border-white/5">
             <div>
               <div className="text-xl lg:text-2xl font-bold font-display text-white">2025</div>
               <div className="text-[10px] text-neutral-500 uppercase tracking-widest mt-1">B.Tech CSE</div>
@@ -200,7 +200,7 @@ export function HeroSection({ onOpenTerminal }: HeroSectionProps) {
 
         {/* Right Side: Interactive Mock Code Editor (Desktop Only) */}
         <div className="hidden lg:block lg:col-span-5 relative w-full">
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-var(--gradient-start) to-var(--gradient-end) opacity-5 blur-2xl pointer-events-none" />
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-[var(--gradient-start)] to-[var(--gradient-end)] opacity-5 blur-2xl pointer-events-none" />
           
           <div className="glass rounded-2xl shadow-2xl border border-white/15 overflow-hidden backdrop-blur-xl relative">
             
@@ -321,6 +321,6 @@ export function HeroSection({ onOpenTerminal }: HeroSectionProps) {
       </div>
     </section>
   )
-}
+})
 
 export default HeroSection

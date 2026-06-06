@@ -1,7 +1,8 @@
-// ContactForm — controlled form with active glow borders, loader status indicators, and clean glassmorphism styling
+// ContactForm — UNCONTROLLED form (refs-based) for zero-latency typing.
+// React.memo prevents cascade re-renders from parent (scroll section changes, etc.)
 'use client'
 
-import { useState, useCallback, FormEvent, ChangeEvent } from 'react'
+import { useState, useCallback, FormEvent, useRef, memo } from 'react'
 import { postContact, type ContactRequest } from '@/lib/api'
 import { ToastNotification } from './ToastNotification'
 import {
@@ -78,12 +79,9 @@ function validateForm(data: ContactRequest): FieldErrors {
   return errors
 }
 
-export function ContactForm() {
-  const [formData, setFormData] = useState<ContactRequest>({
-    name: '',
-    email: '',
-    message: '',
-  })
+export const ContactForm = memo(function ContactForm() {
+  // Only re-render for validation errors, submission state, and toast —
+  // NOT for every keystroke. DOM values read from refs at submit time.
   const [errors, setErrors] = useState<FieldErrors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [toast, setToast] = useState<{
@@ -92,10 +90,27 @@ export function ContactForm() {
     message: string
   }>({ isVisible: false, type: 'success', message: '' })
 
-  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-    setErrors((prev) => ({ ...prev, [name]: undefined }))
+  // Uncontrolled refs — DOM owns the values, React never reads them on each keystroke
+  const nameRef = useRef<HTMLInputElement>(null)
+  const emailRef = useRef<HTMLInputElement>(null)
+  const messageRef = useRef<HTMLTextAreaElement>(null)
+  const messageCounterRef = useRef<HTMLSpanElement>(null)
+
+  // Error-clearing handlers: only trigger a state update if an error currently exists
+  const handleNameChange = useCallback(() => {
+    setErrors((prev) => (prev.name ? { ...prev, name: undefined } : prev))
+  }, [])
+
+  const handleEmailChange = useCallback(() => {
+    setErrors((prev) => (prev.email ? { ...prev, email: undefined } : prev))
+  }, [])
+
+  const handleMessageChange = useCallback(() => {
+    // Update character counter directly in the DOM — zero React renders
+    if (messageRef.current && messageCounterRef.current) {
+      messageCounterRef.current.textContent = `${messageRef.current.value.length} / 2000`
+    }
+    setErrors((prev) => (prev.message ? { ...prev, message: undefined } : prev))
   }, [])
 
   const dismissToast = useCallback(() => {
@@ -106,7 +121,14 @@ export function ContactForm() {
     async (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault()
 
-      const fieldErrors = validateForm(formData)
+      // Read values directly from DOM refs at submit time
+      const data: ContactRequest = {
+        name: nameRef.current?.value ?? '',
+        email: emailRef.current?.value ?? '',
+        message: messageRef.current?.value ?? '',
+      }
+
+      const fieldErrors = validateForm(data)
       if (Object.keys(fieldErrors).length > 0) {
         setErrors(fieldErrors)
         return
@@ -115,7 +137,7 @@ export function ContactForm() {
       setIsSubmitting(true)
 
       try {
-        const result = await postContact(formData)
+        const result = await postContact(data)
 
         if (result.error) {
           setToast({ isVisible: true, type: 'error', message: result.error })
@@ -125,7 +147,11 @@ export function ContactForm() {
             type: 'success',
             message: result.data?.message ?? "Message successfully dispatched! I'll get back to you soon. 🚀",
           })
-          setFormData({ name: '', email: '', message: '' })
+          // Reset fields via DOM refs — no React re-render for value clearing
+          if (nameRef.current) nameRef.current.value = ''
+          if (emailRef.current) emailRef.current.value = ''
+          if (messageRef.current) messageRef.current.value = ''
+          if (messageCounterRef.current) messageCounterRef.current.textContent = '0 / 2000'
         }
       } catch (err) {
         // postContact handles errors internally, this is a safety fallback
@@ -139,7 +165,7 @@ export function ContactForm() {
         setIsSubmitting(false)
       }
     },
-    [formData]
+    [] // no deps needed — reads from refs, not state
   )
 
   const inputBase =
@@ -182,11 +208,12 @@ export function ContactForm() {
                   FULLNAME <span className="text-red-400" aria-label="required">*</span>
                 </label>
                 <input
+                  ref={nameRef}
                   id="contact-name"
                   name="name"
                   type="text"
-                  value={formData.name}
-                  onChange={handleChange}
+                  defaultValue=""
+                  onChange={handleNameChange}
                   placeholder="e.g. John Doe"
                   required
                   aria-invalid={!!errors.name}
@@ -208,11 +235,12 @@ export function ContactForm() {
                   EMAIL ADDRESS <span className="text-red-400" aria-label="required">*</span>
                 </label>
                 <input
+                  ref={emailRef}
                   id="contact-email"
                   name="email"
                   type="email"
-                  value={formData.email}
-                  onChange={handleChange}
+                  defaultValue=""
+                  onChange={handleEmailChange}
                   placeholder="e.g. john@domain.com"
                   required
                   aria-invalid={!!errors.email}
@@ -234,10 +262,11 @@ export function ContactForm() {
                   MESSAGE BODY <span className="text-red-400" aria-label="required">*</span>
                 </label>
                 <textarea
+                  ref={messageRef}
                   id="contact-message"
                   name="message"
-                  value={formData.message}
-                  onChange={handleChange}
+                  defaultValue=""
+                  onChange={handleMessageChange}
                   placeholder="Summarize your project design parameters..."
                   required
                   rows={5}
@@ -255,8 +284,8 @@ export function ContactForm() {
                   ) : (
                     <span />
                   )}
-                  <span className="text-[10px] font-mono text-neutral-600">
-                    {formData.message.length} / 2000
+                  <span ref={messageCounterRef} className="text-[10px] font-mono text-neutral-600">
+                    0 / 2000
                   </span>
                 </div>
               </div>
@@ -314,6 +343,6 @@ export function ContactForm() {
       </div>
     </section>
   )
-}
+})
 
 export default ContactForm

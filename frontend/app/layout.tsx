@@ -81,7 +81,10 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
-      <body className="bg-[#080808] text-[#f0f0f0] antialiased noise-overlay">
+      {/* noise-overlay removed — SVG feTurbulence filter as position:fixed causes
+          Chrome to invalidate and re-composite the entire page on every scroll tick.
+          Safari handles fixed composited layers differently (Metal GPU). */}
+      <body className="bg-[#080808] text-[#f0f0f0] antialiased">
         {children}
       </body>
     </html>

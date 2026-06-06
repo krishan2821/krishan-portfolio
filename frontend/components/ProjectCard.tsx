@@ -30,11 +30,29 @@ export function ProjectCard({ project, animationDelay = 0 }: ProjectCardProps) {
     <article
       className="
         glass rounded-2xl p-5 flex flex-col overflow-hidden relative group/card
-        border border-white/5 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1
-        hover:border-accent hover:shadow-[0_15px_30px_-10px_rgba(0,0,0,0.6),0_0_20px_var(--accent-glow)]
+        border border-white/5
         animate-fade-in-up
       "
-      style={{ animationDelay: `${animationDelay}ms` }}
+      style={{
+        animationDelay: `${animationDelay}ms`,
+        // GPU-only hover lift — no layout triggers (avoids INP penalty)
+        transition: 'transform 0.25s cubic-bezier(0.16,1,0.3,1), border-color 0.25s ease, box-shadow 0.25s ease',
+        // Isolate this card's paint so hover doesn't invalidate siblings
+        contain: 'layout style',
+        willChange: 'transform',
+      }}
+      onMouseEnter={(e) => {
+        const el = e.currentTarget as HTMLElement
+        el.style.transform = 'translateY(-4px) translateZ(0)'
+        el.style.borderColor = 'var(--accent)'
+        el.style.boxShadow = '0 15px 30px -10px rgba(0,0,0,0.6), 0 0 20px var(--accent-glow)'
+      }}
+      onMouseLeave={(e) => {
+        const el = e.currentTarget as HTMLElement
+        el.style.transform = 'translateY(0) translateZ(0)'
+        el.style.borderColor = 'rgba(255,255,255,0.05)'
+        el.style.boxShadow = 'none'
+      }}
       aria-label={`Project: ${title}`}
     >
       {/* Visual Accent Top Bar */}
@@ -48,7 +66,7 @@ export function ProjectCard({ project, animationDelay = 0 }: ProjectCardProps) {
             alt={`${title} architecture diagram`}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover transition-transform duration-700 group-hover/card:scale-105"
+            className="object-cover transition-transform duration-300 group-hover/card:scale-105"
           />
         ) : (
           /* Premium Geometric CSS wireframe asset */

@@ -1,12 +1,12 @@
 // ProjectsGrid — fetches projects with dynamic tag filtering and maps to ProjectCards with delay staggered entries
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, memo } from 'react'
 import { getProjects, type Project } from '@/lib/api'
 import { ProjectCard } from './ProjectCard'
 import { IconRefresh, IconAdjustmentsHorizontal } from '@tabler/icons-react'
 
-export function ProjectsGrid() {
+export const ProjectsGrid = memo(function ProjectsGrid() {
   const [projects, setProjects] = useState<Project[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -144,6 +144,6 @@ export function ProjectsGrid() {
 
     </section>
   )
-}
+})
 
 export default ProjectsGrid

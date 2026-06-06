@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "bradlc.vscode-tailwindcss",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "redhat.java",
+    "vscjava.vscode-java-pack",
+    "vscjava.vscode-spring-initializr",
+    "vmware.vscode-spring-boot",
+    "vscjava.vscode-maven"
+  ]
+}

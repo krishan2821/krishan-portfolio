@@ -1,7 +1,7 @@
 // ExperienceSection — futuristic timeline of work experience, education history, and interactive certifications zoom lightbox
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, memo } from 'react'
 import Image from 'next/image'
 import {
   IconAward,
@@ -113,7 +113,7 @@ const CERTIFICATES_DATA: CertificateItem[] = [
   }
 ]
 
-export function ExperienceSection() {
+export const ExperienceSection = memo(function ExperienceSection() {
   const [activeCert, setActiveCert] = useState<string | null>(null)
 
   const openLightbox = useCallback((src: string) => {
@@ -291,6 +291,6 @@ export function ExperienceSection() {
       </div>
     </section>
   )
-}
+})
 
 export default ExperienceSection

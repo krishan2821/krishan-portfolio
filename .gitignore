@@ -21,10 +21,17 @@ backend/.mvn/wrapper/maven-wrapper.jar
 *.ear
 *.log
 .DS_Store
+.classpath
+.project
+.settings/
+backend/.classpath
+backend/.project
+backend/.settings/
 
 # ── IDX / IDE ─────────────────────────────────────────────────────────────
 .idx/
 .vscode/settings.json
+frontend/.vscode/settings.json
 *.iml
 .idea/
 *.swp
