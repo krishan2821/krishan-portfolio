@@ -680,7 +680,7 @@ export function TerminalUI({
   return (
     <aside
       aria-label="Interactive terminal shell"
-      className={`flex h-full w-full flex-col overflow-hidden rounded-2xl border font-mono text-xs shadow-2xl relative crt-effect transition-all duration-500 ${
+      className={`flex h-full w-full flex-col overflow-hidden rounded-2xl border font-mono text-[10px] sm:text-xs shadow-2xl relative crt-effect transition-all duration-500 ${
         isCompromised
           ? 'border-red-500/35 shadow-[0_0_30px_rgba(239,68,68,0.25)] bg-neutral-950/98'
           : 'border-white/10 bg-neutral-950/98'
@@ -760,7 +760,7 @@ export function TerminalUI({
         {outputLines.map((line) => (
           <div
             key={line.id}
-            className={`terminal-line ${lineColorMap[line.type]} mb-1.5`}
+            className={`terminal-line ${lineColorMap[line.type]} mb-1.5 whitespace-pre-wrap break-words`}
           >
             {line.content || '\u00A0'}
           </div>
@@ -802,7 +802,7 @@ export function TerminalUI({
           autoCorrect="off"
           autoCapitalize="none"
           spellCheck={false}
-          className="flex-1 bg-transparent text-white placeholder-neutral-700 outline-none caret-[var(--terminal-green)] font-mono text-xs disabled:opacity-50"
+          className="flex-1 bg-transparent text-white placeholder-neutral-700 outline-none caret-[var(--terminal-green)] font-mono text-[10px] sm:text-xs disabled:opacity-50"
           aria-label="Terminal input prompt"
         />
         {!isProcessing && (
