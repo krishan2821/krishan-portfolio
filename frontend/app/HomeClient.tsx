@@ -605,7 +605,7 @@ export default function HomeClient() {
             if (e.target === e.currentTarget) closeTerminal()
           }}
         >
-          <div className={`w-full p-4 transform transition-all duration-300 ${isTerminalMaximized ? 'h-[92vh]' : 'h-[75vh]'}`}>
+          <div className={`w-full max-w-full min-w-0 p-4 transform transition-all duration-300 ${isTerminalMaximized ? 'h-[92vh]' : 'h-[75vh]'}`}>
             <TerminalUI
               isOpen={true}
               isMaximized={isTerminalMaximized}

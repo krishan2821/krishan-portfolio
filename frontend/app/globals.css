@@ -310,6 +310,9 @@ html[data-theme='sunset'] {
 .terminal-line {
   text-shadow: 0 0 2px rgba(255, 255, 255, 0.12);
   transition: text-shadow 0.3s ease;
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
 }
 
 .terminal-line.text-\[var\(--terminal-green\)\] {

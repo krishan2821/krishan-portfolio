@@ -413,9 +413,14 @@ export function TerminalUI({
     outputRef.current?.scrollTo({ top: outputRef.current.scrollHeight, behavior: 'smooth' })
   }, [outputLines])
 
-  // Focus input on load
+  // Focus input on load (only on desktop to prevent mobile keyboard popups and iOS zoom bug)
   useEffect(() => {
-    if (isOpen) inputRef.current?.focus()
+    if (isOpen) {
+      const isMobile = window.matchMedia('(max-width: 1023px)').matches || window.matchMedia('(pointer: coarse)').matches
+      if (!isMobile) {
+        inputRef.current?.focus()
+      }
+    }
   }, [isOpen])
 
   const pushLines = useCallback((lines: string[], type: OutputLine['type'] = 'output') => {
@@ -802,7 +807,7 @@ export function TerminalUI({
           autoCorrect="off"
           autoCapitalize="none"
           spellCheck={false}
-          className="flex-1 bg-transparent text-white placeholder-neutral-700 outline-none caret-[var(--terminal-green)] font-mono text-[10px] sm:text-xs disabled:opacity-50"
+          className="flex-1 bg-transparent text-white placeholder-neutral-700 outline-none caret-[var(--terminal-green)] font-mono text-base sm:text-xs disabled:opacity-50"
           aria-label="Terminal input prompt"
         />
         {!isProcessing && (
