@@ -27,37 +27,37 @@ const SOCIAL_CONNECTIONS = [
   {
     name: 'Call Direct',
     icon: IconPhone,
-    url: process.env.NEXT_PUBLIC_PHONE_NUMBER || 'tel:+919876543210',
+    url: process.env.NEXT_PUBLIC_PHONE_NUMBER || 'tel:+919782885866',
     color: 'hover:text-emerald-400 hover:border-emerald-500/30 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)]',
   },
   {
     name: 'WhatsApp',
     icon: IconBrandWhatsapp,
-    url: process.env.NEXT_PUBLIC_WHATSAPP_LINK || 'https://wa.me/919876543210',
+    url: process.env.NEXT_PUBLIC_WHATSAPP_LINK || 'https://wa.me/919782885866',
     color: 'hover:text-green-400 hover:border-green-500/30 hover:shadow-[0_0_20px_rgba(34,197,94,0.15)]',
   },
   {
     name: 'Telegram',
     icon: IconBrandTelegram,
-    url: process.env.NEXT_PUBLIC_TELEGRAM_LINK || 'https://t.me/yourusername',
+    url: process.env.NEXT_PUBLIC_TELEGRAM_LINK || 'https://t.me/the_shrikrishan',
     color: 'hover:text-cyan-400 hover:border-cyan-500/30 hover:shadow-[0_0_20px_rgba(6,182,212,0.15)]',
   },
   {
     name: 'Instagram',
     icon: IconBrandInstagram,
-    url: process.env.NEXT_PUBLIC_INSTAGRAM_LINK || 'https://instagram.com/yourusername',
+    url: process.env.NEXT_PUBLIC_INSTAGRAM_LINK || 'https://www.instagram.com/middleclass_coder?igsh=MWVieXBvNjV2MHVzbQ%3D%3D&utm_source=qr',
     color: 'hover:text-pink-400 hover:border-pink-500/30 hover:shadow-[0_0_20px_rgba(236,72,153,0.15)]',
   },
   {
     name: 'LinkedIn',
     icon: IconBrandLinkedin,
-    url: process.env.NEXT_PUBLIC_LINKEDIN_LINK || 'https://linkedin.com/in/yourusername',
+    url: process.env.NEXT_PUBLIC_LINKEDIN_LINK || 'https://www.linkedin.com/in/krishan-jangid-4aa4771b6?utm_source=share_via&utm_content=profile&utm_medium=member_ios',
     color: 'hover:text-blue-400 hover:border-blue-500/30 hover:shadow-[0_0_20px_rgba(59,130,246,0.15)]',
   },
   {
     name: 'GitHub',
     icon: IconBrandGithub,
-    url: process.env.NEXT_PUBLIC_GITHUB_LINK || 'https://github.com/yourusername',
+    url: process.env.NEXT_PUBLIC_GITHUB_LINK || 'https://github.com/krishan2821',
     color: 'hover:text-white hover:border-white/30 hover:shadow-[0_0_20px_rgba(255,255,255,0.15)]',
   },
 ]
