@@ -179,10 +179,10 @@ export const HeroSection = memo(function HeroSection({ onOpenTerminal }: HeroSec
           {/* Social Links */}
           <nav className="flex flex-wrap items-center gap-4 pt-4" aria-label="Social connections">
             {[
-              { href: process.env.NEXT_PUBLIC_GITHUB_LINK || 'https://github.com/krishan2821', label: 'GitHub', Icon: IconBrandGithub },
-              { href: process.env.NEXT_PUBLIC_LINKEDIN_LINK || 'https://www.linkedin.com/in/krishan-jangid-4aa4771b6?utm_source=share_via&utm_content=profile&utm_medium=member_ios', label: 'LinkedIn', Icon: IconBrandLinkedin },
-              { href: process.env.NEXT_PUBLIC_TELEGRAM_LINK || 'https://t.me/the_shrikrishan', label: 'Telegram', Icon: IconBrandTelegram },
-              { href: process.env.NEXT_PUBLIC_INSTAGRAM_LINK || 'https://www.instagram.com/middleclass_coder?igsh=MWVieXBvNjV2MHVzbQ%3D%3D&utm_source=qr', label: 'Instagram', Icon: IconBrandInstagram },
+              { href: 'https://github.com/krishan2821', label: 'GitHub', Icon: IconBrandGithub },
+              { href: 'https://www.linkedin.com/in/krishan-jangid-4aa4771b6?utm_source=share_via&utm_content=profile&utm_medium=member_ios', label: 'LinkedIn', Icon: IconBrandLinkedin },
+              { href: 'https://t.me/the_shrikrishan', label: 'Telegram', Icon: IconBrandTelegram },
+              { href: 'https://www.instagram.com/middleclass_coder?igsh=MWVieXBvNjV2MHVzbQ%3D%3D&utm_source=qr', label: 'Instagram', Icon: IconBrandInstagram },
             ].map(({ href, label, Icon }) => (
               <a
                 key={label}
