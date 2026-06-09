@@ -100,6 +100,7 @@ export const Navbar = memo(function Navbar({ activeSection = 'hero', isTerminalO
                   href={item.href}
                   target={item.isExternal ? '_blank' : undefined}
                   rel={item.isExternal ? 'noopener noreferrer' : undefined}
+                  download={item.id === 'nav-resume' ? 'Krishan_Kumar_Jangid_Resume.pdf' : undefined}
                   onClick={(e) => {
                     if (item.id === 'nav-terminal') {
                       e.preventDefault()
@@ -168,6 +169,7 @@ export const Navbar = memo(function Navbar({ activeSection = 'hero', isTerminalO
               href={item.href}
               target={item.isExternal ? '_blank' : undefined}
               rel={item.isExternal ? 'noopener noreferrer' : undefined}
+              download={item.id === 'nav-resume' ? 'Krishan_Kumar_Jangid_Resume.pdf' : undefined}
               onClick={(e) => {
                 if (item.id === 'nav-terminal') {
                   e.preventDefault()
