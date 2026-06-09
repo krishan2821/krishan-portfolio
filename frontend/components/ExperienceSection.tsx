@@ -60,14 +60,15 @@ const EXPERIENCE_DATA: ExperienceItem[] = [
     skills: ['Linux', 'RHCSA', 'RHEL', 'SELinux', 'LVM', 'Firewalld']
   },
   {
-    role: 'AI and Machine Learning Trainee',
-    company: 'HDLC Technologies',
-    period: '05/2023 - 07/2023',
+    role: 'Cyber Security Intern',
+    company: 'Cyberops Infosec LLP',
+    period: '05/2024 - 09/2024',
     description: [
-      'Participated in hands-on AI model development sessions under expert supervision.',
-      'Implemented basic neural networks and data processing layers in Python.'
+      'Completed a comprehensive 4-month Cyber Security Internship (Ref. No: JPCO/HR/2024-055).',
+      'Acquired hands-on experience in vulnerability assessment, information security protocols, and security audits under expert supervision.',
+      'Recognized for being punctual, hardworking, and highly inquisitive by the executive leadership (Mr. Mukesh Choudhary, CEO).'
     ],
-    skills: ['AI/ML', 'Python', 'Neural Networks']
+    skills: ['Cyber Security', 'Infosec', 'Vulnerability Assessment', 'Network Security', 'Security Audits']
   },
   {
     role: 'Web Designing Intern',
