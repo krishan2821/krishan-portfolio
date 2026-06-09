@@ -41,7 +41,7 @@ export const ProjectsGrid = memo(function ProjectsGrid() {
         <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-accent font-mono">
           <IconAdjustmentsHorizontal size={14} /> Showcase portfolio
         </div>
-        <h2 className="text-3xl font-display font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-neutral-500 md:text-4xl lg:text-6xl">
+        <h2 className="text-3xl font-display font-extrabold heading-gradient md:text-4xl lg:text-6xl">
           Featured Systems
         </h2>
         <p className="max-w-xl text-sm leading-relaxed text-neutral-400 font-medium md:text-base">

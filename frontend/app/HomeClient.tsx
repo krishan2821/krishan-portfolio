@@ -50,18 +50,34 @@ export default function HomeClient() {
   // Open terminal on desktop by default after mount, and close it if width drops below desktop threshold
   useEffect(() => {
     setMounted(true)
-    if (window.innerWidth >= 1024) {
+    let wasDesktop = window.innerWidth >= 1024
+    if (wasDesktop) {
       setIsTerminalOpen(true)
     }
 
     const handleResize = () => {
-      if (window.innerWidth < 1024) {
+      const isDesktopNow = window.innerWidth >= 1024
+      if (wasDesktop && !isDesktopNow) {
         setIsTerminalOpen(false)
       }
+      wasDesktop = isDesktopNow
     }
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+
+  // Lock body scroll when terminal is open on mobile
+  useEffect(() => {
+    if (!mounted) return
+    const isMobile = window.innerWidth < 1024
+    if (isMobile && isTerminalOpen) {
+      const originalOverflow = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = originalOverflow
+      }
+    }
+  }, [isTerminalOpen, mounted])
 
   // CSS-only blob float animation (replaces JS parallax)
   // Blobs now animate via @keyframes in globals.css — compositor thread handles this,

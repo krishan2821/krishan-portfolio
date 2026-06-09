@@ -116,14 +116,16 @@ export const HeroSection = memo(function HeroSection({ onOpenTerminal }: HeroSec
 
           {/* Heading */}
           <div className="flex flex-col gap-3">
-            <h1 className="text-4xl font-display font-extrabold leading-[1.1] tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-neutral-500 md:text-5xl lg:text-6xl xl:text-7xl">
+            <h1 className="text-4xl font-display font-extrabold leading-[1.1] tracking-tighter text-white md:text-5xl lg:text-6xl xl:text-7xl">
               Hey, I&apos;m{' '}
-              <span className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-white via-[var(--accent)] to-white font-black tracking-tight drop-shadow-[0_0_12px_var(--accent-glow)] px-1">
-                Krishan
+              <span className="relative inline-block px-1 isolate">
                 <span className="absolute -bottom-1 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent opacity-80 shadow-[0_0_10px_var(--accent)] animate-pulse z-20" />
+                <span className="name-gradient font-black tracking-tight">
+                  Krishan
+                </span>
               </span>
               , a <br />
-              <span className="gradient-text transition-all duration-500" aria-live="polite">
+              <span className="gradient-text" aria-live="polite">
                 {displayText}
               </span>
               <span

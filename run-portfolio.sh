@@ -27,6 +27,24 @@ fi
 echo "🧹 Clearing Next.js cache (.next folder)..."
 rm -rf .next
 
-# 4. Start the Next.js development server binding to 0.0.0.0 for local network access
+# 4. Detect local IP address for mobile access
+LOCAL_IP=$(ipconfig getifaddr en0 2>/dev/null)
+if [ -z "$LOCAL_IP" ]; then
+  LOCAL_IP=$(ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}' | head -n 1)
+fi
+
+echo "============================================="
+echo "   📶 NETWORK ACCESS INFO"
+echo "============================================="
+echo "   💻 Local Web:     http://localhost:3000"
+if [ -n "$LOCAL_IP" ]; then
+  echo "   📱 Mobile Access: http://$LOCAL_IP:3000"
+else
+  echo "   📱 Mobile Access: (Could not detect local IP. Connect to same Wi-Fi)"
+fi
+echo "============================================="
+echo ""
+
+# 5. Start the Next.js development server binding to 0.0.0.0 for local network access
 echo "⚡ Starting Next.js Dev Server on 0.0.0.0..."
 npm run dev -- -H 0.0.0.0
